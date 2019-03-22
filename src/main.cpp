@@ -3,10 +3,16 @@
 #define   paso    2
 #define   dir     3
 #define   fin     4
+#define   bomba   5
+#define   rele    6
 #define   pinADC  A0
 #define   pres    1
 #define   arriba  0
 #define   abajo   1
+#define   lim_sup   2900
+#define   lim_inf   -99
+#define   abierto   1
+#define   cerrado   0
 //1000 pasos = 6.98mm => 0.00698mm por pasos
 
 bool sen = abajo;
@@ -15,12 +21,34 @@ String argumento = "00000";
 int adc;
 int ohm;
 int pos;
+int aux = 0;
+int con = 0;
+
+
+//----------------------------------------------------------- continuidad
+void continuidad ()
+{
+  digitalWrite(rele,LOW);
+  delay(100);
+  con = digitalRead(bomba);
+  digitalWrite(rele,HIGH);
+  if(con == cerrado)
+  {
+    Serial.println("Continuidad: OK");
+  }
+  else
+  {
+    Serial.println("Continuidad: NO OK!!!");
+  }
+
+}
 
 //----------------------------------------------------------- leer
 void leer()
 {
   adc = analogRead(pinADC);
   ohm = map(adc,0,1023,300,0);
+
   Serial.print("ADC:\t");
   Serial.print(adc);
   Serial.print("\t");
@@ -35,9 +63,7 @@ void leer()
 //------------------------------------------------------------mover
 void mover(int dist)
 {
-  int aux;
-
-
+  aux = 0;
   if(dist > 0)
     sen = arriba;
   else
@@ -45,21 +71,29 @@ void mover(int dist)
 
   digitalWrite(dir,sen);
 
-  for(int i = 0;i<abs(dist);i++)
+  for(int i = 0;(i<abs(dist) && (aux == 0)) ;i++)
   {
-    digitalWrite(paso,1);
-    delay(1);
-    digitalWrite(paso,0);
-    delay(1);
     if(sen == arriba)
     {
       pos++;
+      if(pos > lim_sup)
+      {
+        aux = 1;
+      }
     }
     else
     {
       pos--;
+      if((pos < lim_inf) || (digitalRead(fin) != pres))
+      {
+        aux = 1;
+      }
     }
-    //Serial.print(".");
+    digitalWrite(paso,1);
+    delay(1);
+    digitalWrite(paso,0);
+    delay(1);
+    //Serial.print(aux);
   }
 
 }
@@ -93,16 +127,20 @@ void setup()
   pinMode(paso,OUTPUT);
   pinMode(dir,OUTPUT);
   pinMode(fin,INPUT_PULLUP);
-
+  pinMode(bomba,INPUT_PULLUP);
+  pinMode(rele,OUTPUT);
+  digitalWrite(rele,HIGH);   //rele apagado
   digitalWrite(dir,sen);
-  inicializar();
-  leer();
+
+  continuidad();
+  //inicializar();
+  //leer();
 }
 
 void loop()
 {
   //leer();
-  delay(1000);
+  //delay(1000);
   if(Serial.available())
   {
     letra = Serial.read();
