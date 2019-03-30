@@ -21,7 +21,7 @@ cuando hay o no continuidad, pasando la prueba el releavor se desactiva
 #define   pres    0
 #define   arriba  0
 #define   abajo   1
-#define   lim_sup   30000
+#define   lim_sup   600000
 #define   lim_inf   -10000
 #define   abierto   1
 #define   cerrado   0
@@ -32,8 +32,8 @@ char letra;
 String argumento = "00000";
 int adc;
 int ohm;
-float pos;
-int pas;
+long pos;
+double pas;
 int aux = 0;
 int con = 0;
 int pulso = 100;
@@ -73,13 +73,16 @@ void leer()
   Serial.print(ohm);
   Serial.print("\t");
   Serial.print("POS: ");
-  Serial.println(pos);
+  Serial.println(float(pos/1000));
 
 }
 
 //------------------------------------------------------------mover
-void mover(float dist)                  // Dist es el argumento de desplazamiento en incremental
+void mover(double dist)                  // Dist es el argumento de desplazamiento en incremental
 {
+  double avance = dist / pas_mm;
+
+  Serial.println(avance);
   aux = 0;                              // Esta variable se usa para evitar que se salga de los limites de movimiento
                                         // Seleciono y escribo la direccion al motor
   if(dist > 0)                          // Si la distancia es positiva
@@ -90,24 +93,21 @@ void mover(float dist)                  // Dist es el argumento de desplazamient
   digitalWrite(dir,sen);                // Escribo el pin de direccion con el sentido
 
                                         // Envio los pulsos para conseguir la dist
-  for(int i = 0;(i<abs(dist) && (aux == 0)) ;i++)
+  for(double i = 0;(i<abs(avance) && (aux == 0)) ;i++)
   {
     if(sen == arriba)                   // Si el sentido apunta arriba
     {
-      pos = pos + pas_mm;               // Se incrementa la posicion
-
       if(pos > lim_sup)                 // Si se supera el limite superior, cambia aux
-      {
         aux = 1;                        // Aux indica que se debe salir del ciclo "for"
-      }
+      else
+        pos = pos + (pas_mm * 1000);               // Se incrementa la posicion
     }
     else                                // Si el sentido apunta hacia abajo
     {
-      pos = pos - pas_mm;
       if((pos < lim_inf) || (digitalRead(fin) == pres)) // Si supero el limite inferior o detecto el fin
-      {
         aux = 1;                        // Aux indica que debo salir del ciclo "for"
-      }
+      else
+        pos = pos - (pas_mm * 1000);
     }
 
 
