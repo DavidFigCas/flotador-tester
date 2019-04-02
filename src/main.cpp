@@ -21,8 +21,8 @@ cuando hay o no continuidad, pasando la prueba el releavor se desactiva
 #define   pres    0
 #define   arriba  0
 #define   abajo   1
-#define   lim_sup   600000
-#define   lim_inf   -10000
+#define   lim_sup   400
+#define   lim_inf   100
 #define   abierto   1
 #define   cerrado   0
 #define   pas_mm    0.0025
@@ -32,8 +32,7 @@ char letra;
 String argumento = "00000";
 int adc;
 int ohm;
-long pos;
-double pas;
+double pos = 0;
 int aux = 0;
 int con = 0;
 int pulso = 100;
@@ -73,16 +72,38 @@ void leer()
   Serial.print(ohm);
   Serial.print("\t");
   Serial.print("POS: ");
-  Serial.println(float(pos/1000));
+  Serial.println(pos,4);
 
 }
 
-//------------------------------------------------------------mover
-void mover(double dist)                  // Dist es el argumento de desplazamiento en incremental
-{
-  double avance = dist / pas_mm;
 
-  Serial.println(avance);
+//----------------------------------------------------------- comandos
+void leer_comando()
+{
+  if(Serial.available())
+  {
+    letra = Serial.read();
+
+    switch(letra)
+    {
+      case '$':
+        argumento = Serial.readStringUntil("OK");
+        if(argumento == "X")
+          aux = 1;
+      break;
+
+    }
+
+  }
+}
+
+
+//------------------------------------------------------------mover
+void mover(double dist)                 // Dist es el argumento de desplazamiento en incremental
+{
+  double avance = dist / pas_mm;        // avance suirve para calcular los pasos en funcion de los pasos por mm
+  //Serial.println(avance);
+  int j;
   aux = 0;                              // Esta variable se usa para evitar que se salga de los limites de movimiento
                                         // Seleciono y escribo la direccion al motor
   if(dist > 0)                          // Si la distancia es positiva
@@ -93,22 +114,13 @@ void mover(double dist)                  // Dist es el argumento de desplazamien
   digitalWrite(dir,sen);                // Escribo el pin de direccion con el sentido
 
                                         // Envio los pulsos para conseguir la dist
-  for(double i = 0;(i<abs(avance) && (aux == 0)) ;i++)
+  for(double i = 0;(i<abs(avance) && (aux == 0)) ;i++) // La condicion de movimiento está en funcion de los pasos
   {
-    if(sen == arriba)                   // Si el sentido apunta arriba
-    {
-      if(pos > lim_sup)                 // Si se supera el limite superior, cambia aux
-        aux = 1;                        // Aux indica que se debe salir del ciclo "for"
-      else
-        pos = pos + (pas_mm * 1000);               // Se incrementa la posicion
-    }
-    else                                // Si el sentido apunta hacia abajo
-    {
-      if((pos < lim_inf) || (digitalRead(fin) == pres)) // Si supero el limite inferior o detecto el fin
-        aux = 1;                        // Aux indica que debo salir del ciclo "for"
-      else
-        pos = pos - (pas_mm * 1000);
-    }
+
+    if((pos > lim_sup) && (sen == arriba))
+      aux = 1;                        // Aux indica que se debe salir del ciclo "for"
+    else if(((pos < lim_inf) || (digitalRead(fin) == pres)) && sen == abajo)                // Si se supera el limite superior, cambia aux
+      aux = 1;
 
 
     if(aux == 0)                        // Si no estoy en algun limite, puedo dar pasos
@@ -117,9 +129,19 @@ void mover(double dist)                  // Dist es el argumento de desplazamien
       delayMicroseconds(pulso);         // El retardo está controlado por un tiempo en uS
       digitalWrite(paso,0);             // Termino el pulso
       delayMicroseconds(pulso);
-      //Serial.print(aux);
+      if(sen == arriba)
+        pos = pos + pas_mm;
+      else
+        pos = pos - pas_mm;
+
+      if( (j%400) == 0 )
+      {
+        //Serial.println(pos,4);          // Imprimir cada 40 pasos - 0.1mm
+        leer();
+        j=0;
+      }
+      j++;
     }
-    //leer();
   }
 
 }
@@ -139,15 +161,18 @@ void inicializar()                      // Inicializa la posición en Home
     digitalWrite(paso,0);
     delayMicroseconds(pulso);           // Termino el pulso
     //Serial.println("+");              // Repito los pulsos-pasos hasta tocar home
+    //leer_comando();
   }
   Serial.println("Home");               // Home encontrada
   pos = lim_inf;                        // La posicion toma el limite inferior
 }
 
+
+
 //--------------------------------------------------------------------- Setup
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Iniciando...");
 
   pinMode(paso,OUTPUT);
@@ -182,7 +207,12 @@ void loop()
       break;
 
       case '$':
-        inicializar();
+        argumento = Serial.readStringUntil("OK");
+        if(argumento == "H")
+          inicializar();
+          leer();                // Mandar a Home
+        if(argumento == "X")
+          aux = 1;                        // Salir del proceso
         leer();
       break;
 
