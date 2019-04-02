@@ -183,7 +183,7 @@ void setup()
   digitalWrite(rele,HIGH);   //rele apagado
   digitalWrite(dir,sen);
 
-  continuidad();
+  //continuidad();
   //inicializar();
   //leer();
 }
@@ -211,9 +211,9 @@ void loop()
         if(argumento == "H")
           inicializar();
           leer();                // Mandar a Home
-        if(argumento == "X")
-          aux = 1;                        // Salir del proceso
-        leer();
+        if(argumento == "C")
+          continuidad();                        // Salir del proceso
+          //leer();
       break;
 
     }
