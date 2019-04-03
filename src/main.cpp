@@ -22,7 +22,7 @@ cuando hay o no continuidad, pasando la prueba el releavor se desactiva
 #define   arriba  0
 #define   abajo   1
 #define   lim_sup   400
-#define   lim_inf   100
+#define   lim_inf   0
 #define   abierto   1
 #define   cerrado   0
 #define   pas_mm    0.0025
@@ -72,13 +72,13 @@ void leer()
   Serial.print(ohm);
   Serial.print("\t");
   Serial.print("POS: ");
-  Serial.println(pos,4);
+  Serial.println(pos,2);
 
 }
 
 
 //----------------------------------------------------------- comandos
-void leer_comando()
+void comando_pausa()
 {
   if(Serial.available())
   {
@@ -134,7 +134,7 @@ void mover(double dist)                 // Dist es el argumento de desplazamient
       else
         pos = pos - pas_mm;
 
-      if( (j%400) == 0 )
+      if( (j%4000) == 0 )
       {
         //Serial.println(pos,4);          // Imprimir cada 40 pasos - 0.1mm
         leer();
@@ -192,8 +192,7 @@ void setup()
 //------------------------------------------------------------- loop
 void loop()
 {
-  //leer();
-  //delay(1000);
+
   if(Serial.available())
   {
     letra = Serial.read();
@@ -214,10 +213,11 @@ void loop()
         if(argumento == "C")
           continuidad();                        // Salir del proceso
           //leer();
+        if(argumento == "L")
+          leer();
       break;
 
     }
 
   }
-
 }
