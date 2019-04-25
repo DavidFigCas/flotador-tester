@@ -21,21 +21,26 @@ cuando hay o no continuidad, pasando la prueba el releavor se desactiva
 #define   pres    0
 #define   arriba  0
 #define   abajo   1
-#define   lim_sup   400
-#define   lim_inf   0
+#define   lim_sup   200
+#define   lim_inf   -100
 #define   abierto   1
 #define   cerrado   0
 #define   pas_mm    0.0025
 
 bool sen = abajo;
 char letra;
-String argumento = "00000";
+String argumento = "000000000";
 int adc;
 int ohm;
 double pos = 0;
+double test_fin = lim_sup;
+double test_inicio = lim_inf;
+double test_escalon = 1.0;            // Milimetros de separación entre cada medición
 int aux = 0;
 int con = 0;
 int pulso = 100;
+int j; //auxiliar para pasos
+
 
 
 //----------------------------------------------------------- continuidad
@@ -54,7 +59,7 @@ void continuidad ()
   }
   else              //no hay continuidad
   {
-    Serial.println("Continuidad: NO OK!!!");
+    Serial.println("Continuidad: NO CONTINUIDAD!!!");
   }
 
 }
@@ -80,7 +85,7 @@ void leer()
 //----------------------------------------------------------- comandos
 void comando_pausa()
 {
-  if(Serial.available())
+/*  if(Serial.available())
   {
     letra = Serial.read();
 
@@ -94,7 +99,7 @@ void comando_pausa()
 
     }
 
-  }
+  }*/
 }
 
 
@@ -103,7 +108,6 @@ void mover(double dist)                 // Dist es el argumento de desplazamient
 {
   double avance = dist / pas_mm;        // avance suirve para calcular los pasos en funcion de los pasos por mm
   //Serial.println(avance);
-  int j;
   aux = 0;                              // Esta variable se usa para evitar que se salga de los limites de movimiento
                                         // Seleciono y escribo la direccion al motor
   if(dist > 0)                          // Si la distancia es positiva
@@ -133,15 +137,15 @@ void mover(double dist)                 // Dist es el argumento de desplazamient
         pos = pos + pas_mm;
       else
         pos = pos - pas_mm;
-
-      if( (j%4000) == 0 )
-      {
-        //Serial.println(pos,4);          // Imprimir cada 40 pasos - 0.1mm
-        leer();
-        j=0;
-      }
-      j++;
     }
+
+  //  if( (j%(test_escalon * 400) == 0 )) // Cada 40 pasos - 0.1mm, test_escalon marca la separación entre las lecturas
+  //  {
+      //Serial.println(pos,4);
+  //    leer();
+  //    j=0;
+  //  }
+  //  j++;
   }
 
 }
@@ -167,7 +171,22 @@ void inicializar()                      // Inicializa la posición en Home
   pos = lim_inf;                        // La posicion toma el limite inferior
 }
 
-
+//---------------------------------------------------------- test
+void test(double tt_inicio, double tt_escalon, double tt_fin)
+{
+    // Calcular el desplazamiento necesario para llegar desde la pos actual al test_inicio
+    // inicializar(); // Se asegura que se está en la posición correcta
+    Serial.println("Buscando limite inferior...");
+    mover(tt_inicio - pos);
+    Serial.println("Iniciando prueba");
+    leer();
+    while(pos < tt_fin)
+    {
+      mover(tt_escalon);
+      // delay(1);        // Retardo para asegurar lecturas o sacar promedios
+      leer();
+    }
+}
 
 //--------------------------------------------------------------------- Setup
 void setup()
@@ -193,28 +212,51 @@ void setup()
 void loop()
 {
 
-  if(Serial.available())
+  if(Serial.available())                        // Revisa si hay un dato disponible por el perto Serial
   {
-    letra = Serial.read();
+    letra = Serial.read();                      // Captura una letra inicial para el tipo de comandos a ejecurtar
 
     switch(letra)
     {
-      case '#':
+
+      case '#':                                     // Realiza un movimiento
         argumento = Serial.readStringUntil("OK");
         mover(argumento.toFloat());
         leer();
       break;
 
-      case '$':
+      case '$':                                      // Argumentos de lecturas
         argumento = Serial.readStringUntil("OK");
-        if(argumento == "H")
+        if(argumento == "H")                         // Mandar a Home reiniciar lecturas de posicion
           inicializar();
-          leer();                // Mandar a Home
-        if(argumento == "C")
-          continuidad();                        // Salir del proceso
           //leer();
-        if(argumento == "L")
+
+        if(argumento == "C")                         // Leer CONTINUIDAD
+          continuidad();
+          //leer();
+        if(argumento == "L")                         // Leer OHM + POS
           leer();
+
+        if(argumento == "T")
+          test(test_inicio, test_escalon, test_fin);
+      break;
+
+      case '%':                                  // Realiza el TEST con sus parametros (inicio,escalon,fin)
+        argumento = Serial.readStringUntil("OK");
+        test_inicio = argumento.toFloat();
+        Serial.println(test_inicio);
+      break;
+
+      case '&':
+        argumento = Serial.readStringUntil("OK");
+        test_escalon = argumento.toFloat();
+        Serial.println(test_escalon);
+      break;
+
+      case '/':
+        argumento = Serial.readStringUntil("OK");
+        test_fin = argumento.toFloat();
+        Serial.println(test_fin);
       break;
 
     }
