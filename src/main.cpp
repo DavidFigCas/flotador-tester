@@ -33,6 +33,12 @@ String argumento = "000000000";
 int adc;
 int ohm;
 double pos = 0;
+double test_vacio = lim_inf;
+double test_reserva = lim_inf;
+double test_uncuarto = lim_inf;
+double test_medio = lim_inf;
+double test_trescuarto = lim_inf;
+double test_lleno = lim_inf;
 double test_fin = lim_sup;
 double test_inicio = lim_inf;
 double test_escalon = 1.0;            // Milimetros de separación entre cada medición
@@ -259,6 +265,41 @@ void loop()
         Serial.println(test_fin);
       break;
 
+      case 'X':                                     // Introduce valor en vacio
+        argumento = Serial.readStringUntil("OK");
+        test_vacio = argumento.toFloat();
+        Serial.println(test_vacio);
+      break;
+
+      case 'Y':                                     // Introduce valor de reserva
+        argumento = Serial.readStringUntil("OK");
+        test_reserva = argumento.toFloat();
+        Serial.println(test_reserva);
+      break;
+
+      case 'Z':                                     // Introduce valor en 1/4
+        argumento = Serial.readStringUntil("OK");
+        test_uncuarto = argumento.toFloat();
+        Serial.println(test_uncuarto);
+      break;
+
+      case 'J':                                     // Introduce valor medio
+        argumento = Serial.readStringUntil("OK");
+        test_medio = argumento.toFloat();
+        Serial.println(test_trescuarto);
+      break;
+
+      case 'K':                                     // Intoducinf 3/4 del tanque
+        argumento = Serial.readStringUntil("OK");
+        test_trescuarto = argumento.toFloat();
+        Serial.println(test_trescuarto);
+
+        case 'M':                                    // Intoducinf Full del tanque
+          argumento = Serial.readStringUntil("OK");
+          test_lleno = argumento.toFloat();
+          Serial.println(test_trescuarto);
+
+      break;
     }
 
   }
