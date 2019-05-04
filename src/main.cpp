@@ -367,6 +367,7 @@ void loop()
         argumento = Serial.readStringUntil("OK");
         test_trescuarto = argumento.toFloat();
         Serial.println(test_trescuarto);
+      break;
 
         case 'Q':                                    // Intoducinf Full del tanque
           argumento = Serial.readStringUntil("OK");
