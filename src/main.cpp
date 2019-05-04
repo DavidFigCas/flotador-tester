@@ -33,12 +33,12 @@ String argumento = "000000000";
 int adc;
 int ohm;
 double pos = 0;
-double test_vacio = lim_inf;
+double test_vacio = lim_inf;             // posicion <10
 double test_reserva = lim_inf;
 double test_uncuarto = lim_inf;
 double test_medio = lim_inf;
 double test_trescuarto = lim_inf;
-double test_lleno = lim_inf;
+double test_lleno = lim_sup;           // lleno
 double test_fin = lim_sup;
 double test_inicio = lim_inf;
 double test_escalon = 1.0;            // Milimetros de separación entre cada medición
@@ -46,7 +46,7 @@ int aux = 0;
 int con = 0;
 int pulso = 100;
 int j; //auxiliar para pasos
-
+void test2 (double, double, double, double, double, double, double, double);
 
 
 //----------------------------------------------------------- continuidad
@@ -195,31 +195,71 @@ void test(double tt_inicio, double tt_escalon, double tt_fin)
 }
 
 //---------------------------------------------------------- test 2 lecturas definidas por usuario (vacio, 1/4, medio...)
-void test2(double tt_test_vacio, double tt_test_reserva, double tt_test_uncuarto, double tt_test_medio, double tt_test_trescuarto, double tt_test_lleno, double tt_test_fin)
+void test2(double tt_test_inicio, double tt_test_vacio, double tt_test_reserva, double tt_test_uncuarto, double tt_test_medio, double tt_test_trescuarto, double tt_test_lleno, double tt_test_fin)
 {
     // Calcular el desplazamiento necesario para llegar desde la pos actual al test_inicio
     // inicializar(); // Se asegura que se está en la posición correcta
+    Serial.println("Buscando posicion de inicio...");
+    mover(tt_test_inicio - pos);
+    Serial.println("Posicion de inicio");
+    delay (75);
+    leer();
     Serial.println("Buscando posicion en vacio...");
     mover(tt_test_vacio - pos);
     Serial.println("Posicion en vacio");
+    delay (100);
     leer();
     mover(tt_test_reserva - pos);
     Serial.println("Posicion en reserva");
+    delay (100);
     leer();
     mover(tt_test_uncuarto - pos);
     Serial.println("Posicion en 1/4");
+    delay (100);
     leer();
     mover(tt_test_medio - pos);
     Serial.println("Posicion en 1/2");
+    delay (100);
     leer();
     mover(tt_test_trescuarto - pos);
     Serial.println("Posicion en 3/4");
+    delay (100);
     leer();
     mover(tt_test_lleno - pos);
     Serial.println("Posicion en Lleno");
+    delay (75);
     leer();
     mover(tt_test_fin - pos);
     Serial.println("Posicion en Full");
+    delay (75);
+    leer();
+    mover(tt_test_lleno - pos);
+    Serial.println("Posicion en Lleno");
+    delay (75);
+    leer();
+    mover(tt_test_trescuarto - pos);
+    Serial.println("Posicion en 3/4");
+    delay (100);
+    leer();
+    mover(tt_test_medio - pos);
+    Serial.println("Posicion en 1/2");
+    delay (100);
+    leer();
+    mover(tt_test_uncuarto - pos);
+    Serial.println("Posicion en 1/4");
+    delay (100);
+    leer();
+    mover(tt_test_reserva - pos);
+    Serial.println("Posicion en reserva");
+    delay (100);
+    leer();
+    mover(tt_test_vacio - pos);
+    Serial.println("Posicion en vacio");
+    delay (75);
+    leer();
+    mover(tt_test_inicio - pos);
+    Serial.println("Posicion de inicio");
+    delay (100);
     leer();
 }
 
@@ -277,7 +317,7 @@ void loop()
           test(test_inicio, test_escalon, test_fin);
 
         if(argumento == "P")
-          test2(test_vacio, test_reserva, test_uncuarto, test_medio, test_trescuarto, test_lleno, test_fin);
+          test2(test_inicio, test_vacio, test_reserva, test_uncuarto, test_medio, test_trescuarto, test_lleno, test_fin);
 
       break;
 
@@ -323,12 +363,12 @@ void loop()
         Serial.println(test_medio);
       break;
 
-      case 'K':                                     // Intoducinf 3/4 del tanque
+      case 'K':                                     // Intoduce 3/4 del tanque
         argumento = Serial.readStringUntil("OK");
         test_trescuarto = argumento.toFloat();
         Serial.println(test_trescuarto);
 
-        case 'M':                                    // Intoducinf Full del tanque
+        case 'Q':                                    // Intoducinf Full del tanque
           argumento = Serial.readStringUntil("OK");
           test_lleno = argumento.toFloat();
           Serial.println(test_lleno);
