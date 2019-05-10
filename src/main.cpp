@@ -21,8 +21,8 @@ cuando hay o no continuidad, pasando la prueba el releavor se desactiva
 #define   pres    0
 #define   arriba  0
 #define   abajo   1
-#define   lim_sup   200
-#define   lim_inf   -100
+#define   lim_sup   256
+#define   lim_inf   -44
 #define   abierto   1
 #define   cerrado   0
 #define   pas_mm    0.0025
@@ -73,15 +73,15 @@ void continuidad ()
 //----------------------------------------------------------- leer
 void leer()
 {
-  adc = analogRead(pinADC);             // Lee el canal analógico para determinar la resisitencia del flotador
-  ohm = map(adc,0,1023,300,0);
+  //adc = analogRead(pinADC);             // Lee el canal analógico para determinar la resisitencia del flotador
+  //ohm = map(adc,0,1023,300,0);
 
-  Serial.print("ADC: ");
-  Serial.print(adc);
-  Serial.print("\t");
-  Serial.print("OHM: ");
-  Serial.print(ohm);
-  Serial.print("\t");
+  //Serial.print("ADC: ");
+  //Serial.print(adc);
+  //Serial.print("\t");
+  //Serial.print("OHM: ");
+  //Serial.print(ohm);
+  //Serial.print("\t");
   Serial.print("POS: ");
   Serial.println(pos,2);
 
@@ -201,66 +201,80 @@ void test2(double tt_test_inicio, double tt_test_vacio, double tt_test_reserva, 
     // inicializar(); // Se asegura que se está en la posición correcta
     Serial.println("Buscando posicion de inicio...");
     mover(tt_test_inicio - pos);
-    Serial.println("Posicion de inicio");
-    delay (75);
     leer();
+    Serial.println("Posicion de inicio");
+    delay (1000);
     Serial.println("Buscando posicion en vacio...");
     mover(tt_test_vacio - pos);
+    leer();
     Serial.println("Posicion en vacio");
-    delay (100);
-    leer();
+    delay (1000);
     mover(tt_test_reserva - pos);
+    leer();
     Serial.println("Posicion en reserva");
-    delay (100);
-    leer();
+    delay (1000);
     mover(tt_test_uncuarto - pos);
+    leer();
     Serial.println("Posicion en 1/4");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_medio - pos);
+    leer();
     Serial.println("Posicion en 1/2");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_trescuarto - pos);
+    leer();
     Serial.println("Posicion en 3/4");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_lleno - pos);
-    Serial.println("Posicion en Lleno");
-    delay (75);
     leer();
+    Serial.println("Posicion en Lleno");
+    delay (1000);
+
     mover(tt_test_fin - pos);
+    leer();
     Serial.println("Posicion en Full");
-    delay (75);
-    leer();
+    delay (1000);
+
     mover(tt_test_lleno - pos);
+    leer();
     Serial.println("Posicion en Lleno");
-    delay (75);
-    leer();
+    delay (1000);
+
     mover(tt_test_trescuarto - pos);
+    leer();
     Serial.println("Posicion en 3/4");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_medio - pos);
+    leer();
     Serial.println("Posicion en 1/2");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_uncuarto - pos);
+    leer();
     Serial.println("Posicion en 1/4");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_reserva - pos);
+    leer();
     Serial.println("Posicion en reserva");
-    delay (100);
-    leer();
+    delay (1000);
+
     mover(tt_test_vacio - pos);
+    leer();
     Serial.println("Posicion en vacio");
-    delay (75);
-    leer();
+    delay (1000);
+
     mover(tt_test_inicio - pos);
-    Serial.println("Posicion de inicio");
-    delay (100);
     leer();
+    Serial.println("Posicion de inicio");
+    delay (1000);
+
+    Serial.println("Fin de la prueba");
+    mover(0 - pos);
 }
 
 
@@ -305,7 +319,8 @@ void loop()
         argumento = Serial.readStringUntil("OK");
         if(argumento == "H")                         // Mandar a Home reiniciar lecturas de posicion
           inicializar();
-          //leer();
+          mover(0 - pos);
+          leer();
 
         if(argumento == "C")                         // Leer CONTINUIDAD
           continuidad();
