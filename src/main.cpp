@@ -318,9 +318,11 @@ void loop()
       case '$':                                      // Argumentos de lecturas
         argumento = Serial.readStringUntil("OK");
         if(argumento == "H")                         // Mandar a Home reiniciar lecturas de posicion
+        {
           inicializar();
           mover(0 - pos);
           leer();
+        }
 
         if(argumento == "C")                         // Leer CONTINUIDAD
           continuidad();
